@@ -1,0 +1,75 @@
+Name: GatsbyJS_Build_Deploy
+SchemaVersion: "1.0"
+
+Triggers:
+  - Type: Push
+    Branches:
+      - main
+
+Actions:
+  gatbsy_build:
+    Identifier: aws/build@v1
+    Inputs:
+      Sources:
+        - WorkflowSource
+    Outputs:
+      AutoDiscoverReports:
+        Enabled: false
+      Artifacts:
+        - Name: public
+          Files:
+            - public/*
+    Configuration:
+      Steps:
+        - Run: npm ci
+        - Run: npm run build
+      Container:
+        Registry: DockerHub
+        Image: node:18
+    Compute:
+      Type: EC2
+      Fleet: Linux.x86-64.Large
+    Environment:
+      Connections:
+        - Role: CodeCatalystGatsbyRole
+          Name: "012345678912"
+      Name: production
+  gatsby_publish:
+    Identifier: aws/s3-publish@v1
+    Environment:
+      Name: production
+      Connections:
+        - Role: CodeCatalystGatsbyRole
+          Name: "012345678912"
+    Compute:
+      Type: EC2
+    Inputs:
+      Artifacts:
+        - public
+    Configuration:
+      DestinationBucketName: codecatalyst.devopstar.com
+      SourcePath: public/
+    DependsOn:
+      - gatbsy_build
+  cloudfront_invalidate:
+    Identifier: aws/build@v1
+    Outputs:
+      AutoDiscoverReports:
+        Enabled: false
+    Configuration:
+      Steps:
+        - Run: aws cloudfront create-invalidation --distribution-id=${CLOUDFRONT_DIST_ID}
+            --paths "/*"
+    Compute:
+      Type: EC2
+    DependsOn:
+      - gatsby_publish
+    Environment:
+      Name: production
+      Connections:
+        - Role: CodeCatalystGatsbyRole
+          Name: "012345678912"
+    Inputs:
+      Variables:
+        - Name: CLOUDFRONT_DIST_ID
+          Value: EXAMPLEN7CFEUT

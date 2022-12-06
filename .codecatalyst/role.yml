@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  CodeCatalystGatsbyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CodeCatalystGatsbyRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codecatalyst-runner.amazonaws.com
+                - codecatalyst.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: CloudFrontInvalidation
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudfront:CreateInvalidation
+                Resource: '*'
+        - PolicyName: CodeCatalystPreviewDevelopmentAdministrator
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:*
+                  - lambda:*
+                  - apigateway:*
+                  - ecr:*
+                  - ecs:*
+                  - ssm:*
+                  - codedeploy:*
+                  - s3:*
+                  - iam:DeleteRole
+                  - iam:UpdateRole
+                  - iam:Get*
+                  - iam:TagRole
+                  - iam:PassRole
+                  - iam:CreateRole
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:CreatePolicy
+                  - iam:DeletePolicy
+                  - iam:CreatePolicyVersion
+                  - iam:DeletePolicyVersion
+                  - iam:PutRolePermissionsBoundary
+                  - iam:DeleteRolePermissionsBoundary
+                  - sts:AssumeRole
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeListeners
+                  - elasticloadbalancing:ModifyListener
+                  - elasticloadbalancing:DescribeRules
+                  - elasticloadbalancing:ModifyRule
+                  - cloudwatch:DescribeAlarms
+                  - sns:Publish
+                  - sns:ListTopics
+                Resource: '*'
